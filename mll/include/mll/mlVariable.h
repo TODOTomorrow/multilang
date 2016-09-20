@@ -43,7 +43,6 @@ class metatype_t
 		metatype_t();
 		~metatype_t()
 		{
-			std::cout << "Delete " <<  *this << (void*)this << std::endl;
 			if (data != NULL)
 				free(data);
 		}

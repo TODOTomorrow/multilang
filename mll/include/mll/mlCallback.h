@@ -235,9 +235,12 @@ class mlCallbackMgr
 		template <typename T>
 		static mlVariable call(T function_ptr,std::vector<mlVariable> args, mlInterpreter* context)
 		{
+			
 			mlVariable ptr(function_ptr);
 			if (!callback_table.exists(ptr))
+			{
 				return mlVariable();
+			}
 			
 			mlVariable* cbptr = callback_table.get(ptr);
 			if (cbptr == NULL)
@@ -248,11 +251,13 @@ class mlCallbackMgr
 			
 			if (cb.get_metatype() == C_CALLBACK_TYPE)
 			{
+				std::cout << "C callback" << std::endl;
 				mlCallback callback = cb;
 				return callback.callback_helper_function(args,&callback);
 			}
 			else if (cb.get_metatype() == CLASS_CALLBACK_TYPE)
 			{
+				std::cout << "C++ callback" << std::endl;
 				mlCallback callback = cb;
 				void* func_ctx = get_function_context(context);
 				return ((callback_class_helper_function_t)(callback.callback_helper_function))(func_ctx, args,&callback);
@@ -267,7 +272,8 @@ class mlCallbackMgr
 		template <typename Class, typename... Args,typename T>
 			static void callback_register(T (Class::*function_pointer)(Args...))
 			{
-				mlVariable key(function_pointer);//FIXME?
+				/* We need some uniquie pointer to associate with function */
+				mlVariable key((void*)(&function_pointer));
 				callback_register(key,function_pointer);
 			}
 		
@@ -283,7 +289,7 @@ class mlCallbackMgr
 			static void callback_register(mlVariable key, T (*function_pointer)(std::vector<mlVariable>))
 			{
 				mlCallback callback;
-				callback.callback_function = (void*)(function_pointer);
+				callback.set(function_pointer);
 				callback.callback_helper_function = &mlCallbackMgr::callback_helper_raw<T>;
 				mlVariable callback_wrap(callback);
 				callback_wrap.set_metatype(C_CALLBACK_TYPE);
@@ -298,6 +304,7 @@ class mlCallbackMgr
 				callback.callback_helper_function = (callback_helper_function_t)(&mlCallbackMgr::callback_class_helper<Class, T, Args...>);
 				mlVariable callback_wrap(callback);
 				callback_wrap.set_metatype(CLASS_CALLBACK_TYPE);
+				
 				callback_table.set(key,callback_wrap);
 			}
 		
@@ -310,7 +317,6 @@ class mlCallbackMgr
 				mlVariable callback_wrap(callback);
 				
 				callback_wrap.set_metatype(C_CALLBACK_TYPE);
-				std::cout << "+++++++++++++++++++++++++++++++++++ " << std::endl;
 				callback_table.set(key,callback_wrap);
 			}
 		static void callback_register(mlVariable key, mlVariable value);

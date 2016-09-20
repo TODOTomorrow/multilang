@@ -79,6 +79,7 @@ class mlInterpreter
 				mlVariable callback(function);
 				set(name,callback);
 				class_registry[get_type_info<T>()][name] = callback;
+				return class_registry[get_type_info<T>()];
 			}
 };
 #endif

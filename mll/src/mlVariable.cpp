@@ -54,9 +54,6 @@ metatype_t metatype_t::generate(void* metadata_buf, int size)
 	}
 	metadata._size = size;
 	user_types.push_back(metadata);
-	std::cout << &user_types << std::endl;
-	for (int i = 0 ; i < user_types.size(); i++)
-		std::cout << "\tut [" << i << "] = " << user_types[i] << std::endl;
 	return metadata;
 }
 
@@ -122,12 +119,13 @@ metatype_t::metatype_t()
 
 metatype_t::metatype_t(const metatype_t& obj)
 {
-	std::cout << "Copying metatype. Size: " << ((metatype_t&)obj).size() << " Pointer: " << obj.data << std::endl;
 	if (obj._size != 0)
 	{
 		data = malloc(_size);
 		memcpy(data,obj.data,_size);
 	}
+	else
+		data = NULL;
 	_size = obj._size;
 	id = obj.id;
 }

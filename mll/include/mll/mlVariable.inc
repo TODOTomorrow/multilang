@@ -38,12 +38,13 @@ template <typename... Args,typename T>
 	
 template <typename... Args,typename Class, typename T>
 	mlVariable::mlVariable(T (Class::*function_pointer)(Args...))
-		{
-			callback_register(function_pointer);
-			type = FUNCTION;
-			subtype = ST_CFUNCTION;
-			set_data(function_pointer);
-		}
+	{
+		callback_register(function_pointer);
+		type = FUNCTION;
+		subtype = ST_CFUNCTION;
+		set_data(function_pointer);
+	}
+		
 template <typename T>
 	static std::string get_typename(T var) 
 	{

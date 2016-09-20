@@ -6,15 +6,6 @@
 #include <mll/mlSupport.h>
 
 using namespace std;
-mlVariable func(std::string fn, std::vector<mlVariable> args, mlInterpreter* owner)
-{
-	std::cout << "Hello from C! Function called: " << fn << " Arguments count: " << args.size() << std::endl;
-	for (int i=0;i<args.size();i++)
-	{
-		cout << args[i] << endl;
-	}
-	return mlVariable("Okay its answer from C");
-}
 
 class TestA
 {
@@ -23,17 +14,17 @@ class TestA
 		int print() {cout << "Is A!";}
 };
 
-void test_function(mlVariable a, mlVariable x)
+void test_function_without_conversion(mlVariable a, mlVariable x)
 {
 	cout << x << " , " << a << endl;
 }
 
-void test_function2(std::string x, int a)
+void test_function(std::string x, int a)
 {
 	cout << x << " , " << a << endl;
 }
 
-void test_raw_function(std::vector<mlVariable> args)
+void test_function_with_raw_arguments(std::vector<mlVariable> args)
 {
 	cout << "Raw function called! Args size: " << args.size() << endl;
 }
@@ -46,24 +37,27 @@ int main(int argc,char** argv)
 		mlFactory::exceptions = true;
 		mlLib* l = mlFactory::load(string(argv[1]));
 		mlInterpreter* intrptr = mlFactory::create_interpreter("Javascript");
-		std::cout << mlCallbackMgr::C_CALLBACK_TYPE << std::endl;
-		std::cout << mlCallbackMgr::CLASS_CALLBACK_TYPE << std::endl;
-		init_introspector(intrptr);
-		mlVariable x;
-		//x["a"] = 1;
-		//x["func"] = test_function;
-		//x["b"] = -1;
-		//x["func"] = func;
-		//x = func;
+		intrptr->set("test_function",test_function);
+		intrptr->set("test_function_with_raw_arguments",test_function_with_raw_arguments);
+		intrptr->set("test_function_without_conversion",test_function_without_conversion);
 		
-		//intptr->set("x",x);
+		mlVariable test_number_variable = 1;
+		mlVariable test_string_variable = "Test string";
+		mlVariable test_function_variable = test_function;
+		mlVariable test_object_variable;
+		test_object_variable["number_field"] = 1;
+		test_object_variable["string_field"] = "String field";
+		intrptr->set("test_number_variable", test_number_variable);
+		intrptr->set("test_string_variable", test_string_variable);
+		intrptr->set("test_function_variable", test_function_variable);
+		intrptr->set("test_object_variable", test_object_variable);
+		
+		std::cout << "Test calling mlVariable callback from C++ function" << std::endl;
+		test_function("Some args",2);
+		
 		intrptr->class_register<TestA,std::string>("A");
-		//intrptr->method_register("print",&TestA::print);
-		//intptr->class_register<TestA>("TestA");
-		//mlVariable f = test_function;
-		//intptr->set("func",f);
-		//f("Hello");
-		//intrptr->exec("test.js");
+		intrptr->method_register("print",&TestA::print);
+		intrptr->exec("test.js");
 	}
 	catch (mlException& e)
 	{
