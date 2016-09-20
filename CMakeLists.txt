@@ -8,7 +8,7 @@ execute_process(COMMAND rm -f ./mll-lua/include/mll COMMAND ln -s ${CMAKE_CURREN
 execute_process(COMMAND rm -f ./mll-js/include/mll COMMAND ln -s ${CMAKE_CURRENT_LIST_DIR}/mll/include/mll/ ${CMAKE_CURRENT_LIST_DIR}/mll-js/include/mll)
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -ggdb")
 
 add_subdirectory(mll)
 add_subdirectory(mll-lua)

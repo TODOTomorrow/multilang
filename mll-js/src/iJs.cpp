@@ -25,12 +25,15 @@ int js_callback(duk_context* ctx)
 	
 	duk_push_current_function(ctx);
 	mlVariable function_desc =  runtime->get_from_stack(-1,DUK_TYPE_OBJECT);
-	
-	mlCallbackContext *context = new mlCallbackContext();
-	context->function_name = (function_desc["_function_name"].get<char*>());
 	mlVariable result = runtime->callback(function_desc["_function_name"],args);
 	runtime->push_to_stack(result);
 	return 1;
+}
+
+mlVariable iJs::get_function_context()
+{
+	duk_push_current_function(ctx);
+	return get_from_stack(-1,DUK_TYPE_OBJECT);
 }
 
 iJs* mllib_generate()
@@ -197,7 +200,6 @@ bool iJs::set(std::string name, mlVariable val)
 {
 	duk_push_global_object(ctx);
 	duk_push_string(ctx,name.c_str());
-	
 	push_to_stack(val);
 	
 	if (val.get_type() == mlVariable::FUNCTION)

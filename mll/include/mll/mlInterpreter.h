@@ -13,12 +13,8 @@ class mlLib;
 class mlVariable;
 class mlInterpreter;
 
-class mlCallbackContext
-{
-	public:
-		mlInterpreter* runtime;
-		std::string function_name;
-};
+template <typename T>
+	std::type_info* get_type_info() {return (std::type_info*)&(typeid(T));}
 
 class mlInterpreter
 {
@@ -28,6 +24,7 @@ class mlInterpreter
 		std::ostream *iout, *ierr;
 		std::istream* iin;
 		mlLib* owner;
+		static std::map<std::type_info*,mlVariable> class_registry;
 	public:
 		void set_owner(mlLib* owner) {this->owner = owner;}
 		mlInterpreter();
@@ -50,22 +47,38 @@ class mlInterpreter
 		virtual bool set(std::string name, mlVariable val) {};
 		virtual mlVariable  get(std::string name) {};
 		
+		virtual mlVariable get_function_context() {};
+		
 		bool operator ==(void* id) { return (get_id() == id); }
 		
 		mlVariable callback(mlVariable callbackKey, std::vector<mlVariable>& args);
 		void callback_register(mlVariable key, mlVariable callback);
 		
-		template <class T>
-		static mlVariable constructor_callback(std::vector<mlVariable> args, mlCallbackContext* context)
+		template <class T,typename... Args>
+		static mlVariable constructor_callback(Args...args)
 		{
 			mlVariable obj;
-			mlInterpreter* runtime = context->runtime;
-			if (context == NULL || context->runtime == NULL || context->function_name == "")
-				throw mlException("Cannot use classed if interpreter does not support class context saving");
-			
-			std::cout << "Create new " << context->function_name << "()" << std::endl;
-			obj["this_ptr"] = (void*)(new T());
+			obj["_binary_data"] = new T(args...);
+			obj.uinion(class_registry[(std::type_info*)(&typeid(T))]);
 			return obj;
 		}
+
+		
+		template <typename T,typename... Args>
+			mlVariable class_register(std::string name)
+			{
+				mlVariable class_var;
+				set(name,constructor_callback<T,Args...>);
+				class_registry[get_type_info<T>()] = class_var;
+				return class_var;
+			}
+		
+		template <typename T,typename R, typename... Args>
+			mlVariable method_register(std::string name, R (T::*function)(Args...))
+			{
+				mlVariable callback(function);
+				set(name,callback);
+				class_registry[get_type_info<T>()][name] = callback;
+			}
 };
 #endif

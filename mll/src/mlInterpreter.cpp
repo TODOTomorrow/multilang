@@ -7,7 +7,13 @@
 extern "C" {
 	#include <sys/stat.h>
 }
-mlCallback_table mlCallbackMgr::callback_table;
+std::map<std::type_info*,mlVariable> mlInterpreter::class_registry;
+
+void* get_function_context(mlInterpreter* runtime)
+{
+	return runtime->get_function_context();
+}
+
 bool mlInterpreter::eval(std::string string)
 {
 	
@@ -35,7 +41,7 @@ mlInterpreter::mlInterpreter()
 
 mlVariable mlInterpreter::callback(mlVariable callbackKey, std::vector<mlVariable>& args)
 {
-	return mlCallbackMgr::call(callbackKey,args);
+	return mlCallbackMgr::call(callbackKey,args, this);
 }
 
 void mlInterpreter::callback_register(mlVariable name, mlVariable callback)

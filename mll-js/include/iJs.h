@@ -16,6 +16,7 @@ class iJs : public mlInterpreter
 		bool exec(std::string filename);
 		bool set(std::string name, mlVariable val);
 		void push_to_stack(mlVariable val);
+		mlVariable get_function_context();
 		mlVariable  get_from_stack(int idx, int type = -1);
 		mlVariable  get(std::string name);
 		/*
